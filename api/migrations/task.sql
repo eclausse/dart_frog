@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS task (
+	uid TEXT NOT NULL,
+    name TEXT NOT NULL
+);

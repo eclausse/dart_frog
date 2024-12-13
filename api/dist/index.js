@@ -91,22 +91,24 @@ var _UserController = class {
     res.send(JSON.stringify(users));
   }
   async post(req, res) {
+    const uid = req.body.uid;
     const name = req.body.name;
     let users = [];
     await _UserController.get_values().then(
       (rows) => rows.forEach((row) => {
-        users.push(row.name);
+        users.push(new UserEntry(row.id, row.uid, row.name));
       })
     );
-    if (!name || users.includes(name)) {
+    if (!name || users.includes(name) || !uid || users.includes(uid)) {
       console.log(
         "[ERROR][POST] wrong data on " + _UserController.path + " : " + JSON.stringify(req.body)
       );
       res.status(400).send();
       return;
     }
-    let sql = "INSERT INTO user VALUES(?)";
+    let sql = "INSERT INTO user VALUES(?, ?)";
     let data = [
+      uid,
       name
     ];
     const db = new import_sqlite3.Database("frogy.db");
@@ -157,6 +159,13 @@ var _UserController = class {
 var UserController = _UserController;
 UserController.path = "/user";
 var user_default = UserController;
+var UserEntry = class {
+  constructor(id, uid, name) {
+    this.id = id;
+    this.uid = uid;
+    this.name = name;
+  }
+};
 
 // src/result.ts
 var import_express3 = require("express");
@@ -266,10 +275,146 @@ var ResultEntry = class {
   }
 };
 
+// src/task.ts
+var import_express4 = require("express");
+var import_sqlite33 = require("sqlite3");
+var _TaskController = class {
+  constructor() {
+    this.router = new import_express4.Router();
+    this.router.get(_TaskController.path, this.get);
+    this.router.post(_TaskController.path + "/add", this.post);
+    this.router.post(_TaskController.path + "/anyforme", this.get_by_id);
+  }
+  static get_values() {
+    const db = new import_sqlite33.Database("frogy.db");
+    const sql = "SELECT rowid, * FROM task";
+    return new Promise(
+      (resolve, reject) => db.all(sql, [], (err, rows) => {
+        if (err) {
+          console.log(err);
+        }
+        resolve(rows);
+      })
+    );
+  }
+  async get(_req, res) {
+    let tasks = [];
+    await _TaskController.get_values().then(
+      (rows) => rows.forEach((row) => {
+        tasks.push(new TaskEntry(row.id, row.uid, row.name));
+      })
+    );
+    console.log(
+      "[INFO][GET] get alls on " + _TaskController.path
+    );
+    res.send(JSON.stringify(tasks));
+  }
+  async get_by_id(req, res) {
+    const uid = req.body.uid;
+    const name = req.body.uid;
+    let r = [];
+    if (!uid || !name) {
+      console.log(
+        "[ERROR][POST] wrong data on " + _TaskController.path + "/anyforme : " + JSON.stringify(req.body)
+      );
+      res.status(400).send();
+      return;
+    }
+    await _TaskController.get_values().then(
+      (rows) => rows.forEach((row) => {
+        if (row.uid == uid) {
+          r.push(new TaskImplant(row.uid, row.name));
+        }
+      })
+    );
+    console.log(
+      "[INFO][POST] " + _TaskController.path + "/anyforme " + uid
+    );
+    console.log(r);
+    res.send(JSON.stringify(r));
+  }
+  async post(req, res) {
+    const name = req.body.name;
+    const uid = req.body.uid;
+    if (!uid || !name) {
+      console.log(
+        "[ERROR][POST] wrong data on " + _TaskController.path + " : " + JSON.stringify(req.body)
+      );
+      res.status(400).send();
+      return;
+    }
+    let sql = "INSERT INTO task VALUES(?, ?)";
+    let data = [
+      uid,
+      name
+    ];
+    const db = new import_sqlite33.Database("frogy.db");
+    let e;
+    db.run(sql, data, (err) => e = err);
+    if (e) {
+      console.log(
+        "[ERROR][POST] sql error " + _TaskController.path + " : "
+      );
+      console.error(e.message);
+      res.status(500).send();
+      return;
+    }
+    db.close();
+    console.log(
+      "[INFO][POST] data added on " + _TaskController.path + " : " + JSON.stringify(name)
+    );
+    res.status(200).send();
+  }
+  async delete(req, res) {
+    const db = new import_sqlite33.Database("frogy.db");
+    const { id } = req.body;
+    if (!id) {
+      console.log(
+        "[ERROR][DELETE] wrong data on " + _TaskController.path + " : " + JSON.stringify(req.body)
+      );
+    }
+    const sql = `DELETE FROM task
+    WHERE name = ?`;
+    const data = [id];
+    let e;
+    db.run(sql, data, (err) => e = err);
+    if (e) {
+      console.log(
+        "[ERROR][DELETE] sql error " + _TaskController.path + " : " + JSON.stringify(id)
+      );
+      console.error(e.message);
+      res.status(500).send();
+      return;
+    }
+    db.close();
+    console.log(
+      "[INFO][DELETE] data deleted on " + _TaskController.path + " : " + JSON.stringify(id)
+    );
+    res.status(200).send();
+  }
+};
+var TaskController = _TaskController;
+TaskController.path = "/task";
+var task_default = TaskController;
+var TaskImplant = class {
+  constructor(uid, name) {
+    this.uid = uid;
+    this.name = name;
+  }
+};
+var TaskEntry = class {
+  constructor(id, uid, name) {
+    this.id = id;
+    this.uid = uid;
+    this.name = name;
+  }
+};
+
 // src/index.ts
 var controllers = [
   new user_default(),
-  new result_default()
+  new result_default(),
+  new task_default()
 ];
 var app = new app_default(
   controllers,
