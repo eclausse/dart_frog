@@ -5,6 +5,7 @@
 #include <string_view>
 #include <iostream>
 #include <chrono>
+#include <vector>
 #include <algorithm>
 
 #include <boost/uuid/uuid_generators.hpp>
@@ -35,7 +36,8 @@ void Implant::beacon() {
 
     //api->send_result(std::make_unique<Result>(id, "Pong", 1));
 
-    std::cout << api->assert_ping_pong() << std::endl;
+    //std::cout << api->assert_ping_pong() << std::endl;
+
 }
 
 void Implant::set_running(bool isRunning)
@@ -46,6 +48,23 @@ void Implant::service_tasks()
 {
 }
 
-void Implant::parse_response(const std::string &response)
+std::vector<Task> Implant::parse_tasks_response(const std::string &response)
 {
+    if(response.empty()) return std::vector<Task>();
+    // Local response variable
+    std::stringstream ss{ response };
+
+    // Read response from listening post as JSON
+    boost::property_tree::ptree root;
+    boost::property_tree::read_json(ss, root);
+
+    std::vector<Task> tasks;
+    for (auto &task : root)
+        tasks.push_back(parse_task_from_string(task.second.get<std::string>("name")));
+    return tasks;
+}
+
+
+void test_get_tasks() {
+    std::vector<Task> tasks_todo = parse_tasks_response("[{\"uid\":\"8db4dd5c-61ec-41e1-a5fc-9e78c8a1a90c\",\"name\":\"ping\"},{\"uid\":\"8db4dd5c-61ec-41e1-a5fc-9e78c8a1a90c\",\"name\":\"ping\"}]");
 }

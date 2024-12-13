@@ -16,7 +16,9 @@
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+
 #include "api.hpp"
+#include "task.hpp"
 
 class Implant {
     public:
@@ -34,5 +36,5 @@ class Implant {
         std::string id;
         bool is_running;
 
-        void parse_response(const std::string& response);
+        std::vector<Task> parse_tasks_response(const std::string &response);
 };

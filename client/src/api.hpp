@@ -32,6 +32,6 @@ class Api
         ~Api();
         std::string register_device(std::string uid, std::string name);
         bool assert_ping_pong();
-        //std::string get_tasks(std::string uid);
+        std::string get_tasks(std::string uid);
         std::string send_result(std::unique_ptr<Result> results);
 };

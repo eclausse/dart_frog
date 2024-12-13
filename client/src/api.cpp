@@ -35,6 +35,20 @@ bool Api::assert_ping_pong() {
     return response == "PONG !";
 }
 
+std::string Api::get_tasks(std::string uid) {
+    /* API Path */
+    std::string api_uri_result = uri + "task/anyforme";
+
+    /* Create payload as JSON */
+    boost::property_tree::ptree resultsLocal;
+    resultsLocal.add("uid", uid);
+    std::stringstream resultsStringStream;
+    boost::property_tree::write_json(resultsStringStream, resultsLocal);
+
+    /* Send API request */
+    return send_http_post_request(host, port, api_uri_result, resultsStringStream.str());
+}
+
 std::string Api::send_result(std::unique_ptr<Result> result) {
     /* API Path */
     std::string api_uri_result = uri + "result/add";
