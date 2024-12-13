@@ -36,8 +36,3 @@ class Implant {
 
         void parse_response(const std::string& response);
 };
-
-std::string sendHttpRequest(std::string host,
-    std::string port,
-    std::string uri,
-    std::string payload);

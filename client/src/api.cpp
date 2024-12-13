@@ -25,6 +25,22 @@ std::string Api::register_device(std::string uid, std::string name)
     return send_http_request(host, port, api_uri_register, resultsStringStream.str());
 }
 
+std::string Api::send_result(std::unique_ptr<Result> result) {
+    /* API Path */
+    std::string api_uri_result = uri + "result/add";
+
+    /* Create payload as JSON */
+    boost::property_tree::ptree resultsLocal;
+    resultsLocal.add("uid", result->id);
+    resultsLocal.add("content", result->content);
+    resultsLocal.add("code", result->code);
+    std::stringstream resultsStringStream;
+    boost::property_tree::write_json(resultsStringStream, resultsLocal);
+
+    /* Send API request */
+    return send_http_request(host, port, api_uri_result, resultsStringStream.str());
+}
+
 std::string Api::send_http_request(std::string host,
     std::string port,
     std::string uri,

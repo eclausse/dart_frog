@@ -12,6 +12,7 @@
 #include "../includes/single_include/nlohmann/json.hpp"
 
 #include <cpr/cpr.h>
+#include "result.hpp"
 
 using json = nlohmann::json;
 
@@ -28,5 +29,5 @@ class Api
         ~Api();
         std::string register_device(std::string uid, std::string name);
         //std::string get_tasks(std::string uid);
-        //std::string send_results(Result* results);
+        std::string send_result(std::unique_ptr<Result> results);
 };
