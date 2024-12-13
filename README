@@ -1,0 +1,38 @@
+# Command & Control
+
+## Implant
+```bash
+cd client
+```
+
+### Dependency
+You need to install the cpr library:
+https://girishjoshi.io/post/using-cpr-for-making-http-requests-c++/ 
+
+### Compile 
+```bash
+make
+```
+
+### Execution
+```bash
+make run
+```
+
+## Server
+```bash
+cd api
+```
+
+### Setup 
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+### Execution
+```bash
+just
+```
+
+# Author
