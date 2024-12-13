@@ -158,9 +158,118 @@ var UserController = _UserController;
 UserController.path = "/user";
 var user_default = UserController;
 
+// src/result.ts
+var import_express3 = require("express");
+var import_sqlite32 = require("sqlite3");
+var _ResultController = class {
+  constructor() {
+    this.router = new import_express3.Router();
+    this.router.get(_ResultController.path, this.get);
+    this.router.post(_ResultController.path + "/add", this.post);
+  }
+  static get_values() {
+    const db = new import_sqlite32.Database("frogy.db");
+    const sql = "SELECT rowid, * FROM result";
+    return new Promise(
+      (resolve, reject) => db.all(sql, [], (err, rows) => {
+        if (err) {
+          console.log(err);
+        }
+        resolve(rows);
+      })
+    );
+  }
+  async get(_req, res) {
+    let results = [];
+    await _ResultController.get_values().then(
+      (rows) => rows.forEach((row) => {
+        results.push(new ResultEntry(row.id, row.uid, row.content, row.code));
+      })
+    );
+    console.log(
+      "[INFO][GET] get alls on " + _ResultController.path
+    );
+    res.send(JSON.stringify(results));
+  }
+  async post(req, res) {
+    const uid = req.body.uid;
+    const content = req.body.content;
+    const code = req.body.code;
+    let results = [];
+    if (!uid || !content || !code) {
+      console.log(
+        "[ERROR][POST] wrong data on " + _ResultController.path + "/add : " + JSON.stringify(req.body)
+      );
+      res.status(400).send();
+      return;
+    }
+    let sql = "INSERT INTO result VALUES(?, ?, ?)";
+    let data = [
+      uid,
+      content,
+      code
+    ];
+    const db = new import_sqlite32.Database("frogy.db");
+    let e;
+    db.run(sql, data, (err) => e = err);
+    if (e) {
+      console.log(
+        "[ERROR][POST] sql error " + _ResultController.path + " : "
+      );
+      console.error(e.message);
+      res.status(500).send();
+      return;
+    }
+    db.close();
+    console.log(
+      "[INFO][POST] data added on " + _ResultController.path + " : " + JSON.stringify(uid, content, code)
+    );
+    res.status(200).send();
+  }
+  async delete(req, res) {
+    const db = new import_sqlite32.Database("frogy.db");
+    const { id } = req.body;
+    if (!id) {
+      console.log(
+        "[ERROR][DELETE] wrong data on " + _ResultController.path + " : " + JSON.stringify(req.body)
+      );
+    }
+    const sql = `DELETE FROM result
+    WHERE name = ?`;
+    const data = [id];
+    let e;
+    db.run(sql, data, (err) => e = err);
+    if (e) {
+      console.log(
+        "[ERROR][DELETE] sql error " + _ResultController.path + " : " + JSON.stringify(id)
+      );
+      console.error(e.message);
+      res.status(500).send();
+      return;
+    }
+    db.close();
+    console.log(
+      "[INFO][DELETE] data deleted on " + _ResultController.path + " : " + JSON.stringify(id)
+    );
+    res.status(200).send();
+  }
+};
+var ResultController = _ResultController;
+ResultController.path = "/result";
+var result_default = ResultController;
+var ResultEntry = class {
+  constructor(id, uid, content, code) {
+    this.id = id;
+    this.uid = uid;
+    this.content = content;
+    this.code = code;
+  }
+};
+
 // src/index.ts
 var controllers = [
-  new user_default()
+  new user_default(),
+  new result_default()
 ];
 var app = new app_default(
   controllers,

@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS result (
+	uid TEXT NOT NULL,
+    content TEXT NOT NULL,
+    code INTEGER NOT NULL
+);
