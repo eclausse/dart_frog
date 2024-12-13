@@ -30,8 +30,37 @@ class Api
     public:
         Api(std::string host, std::string port);
         ~Api();
+
+        /**
+         * @brief Call /api/user/register to register the current device
+         * 
+         * @param uid 
+         * @param name 
+         * @return std::string representing JSON response 
+         */
         std::string register_device(std::string uid, std::string name);
+
+        /**
+         * @brief Call /ping route and check that the response is Pong !  
+         * 
+         * @return true On success
+         * @return false 
+         */
         bool assert_ping_pong();
+
+        /**
+         * @brief Call /api/task/anyforme to get all the 
+         * 
+         * @param uid 
+         * @return std::string representing JSON response 
+         */
         std::string get_tasks(std::string uid);
+
+        /**
+         * @brief Call /api/result/add to send the result of a task
+         * 
+         * @param results 
+         * @return std::string representing JSON response 
+         */
         std::string send_result(std::unique_ptr<Result> results);
 };

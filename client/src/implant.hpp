@@ -22,19 +22,21 @@
 
 class Implant {
     public:
-        // Our implant constructor
         Implant(std::string host, std::string port);
-        // The thread for servicing tasks
-        std::future<void> task_thread;
-        // Our public functions that the implant exposes
+
+        /* Implant entry point */
         void beacon();
-        void set_running(bool isRunning);
-        void service_tasks();
 
     private:
 	    std::unique_ptr<Api> api = nullptr;
         std::string id;
         bool is_running;
 
+        /**
+         * @brief Utility to parse a std::string JSON response to a vector of Task
+         * 
+         * @param response 
+         * @return std::vector<Task> 
+         */
         std::vector<Task> parse_tasks_response(const std::string &response);
 };
