@@ -46,13 +46,10 @@ class TaskController implements Controller {
 
   async get_by_id(req: Request, res: Response) {
     const uid = req.body.uid;
-    const name = req.body.uid;
 
     let r: TaskImplant[] = [];
 
-    if (
-      !uid || !name
-    ) {
+    if (!uid) {
       console.log(
         "[ERROR][POST] wrong data on " + TaskController.path + "/anyforme : " +
           JSON.stringify(req.body),
