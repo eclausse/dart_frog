@@ -32,6 +32,7 @@ cd api
 
 ### Setup 
 ```bash
+npm install
 chmod +x setup.sh
 ./setup.sh
 ```
