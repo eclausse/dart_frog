@@ -9,6 +9,7 @@
 #include <random>
 #include <iostream>
 #include <chrono>
+#include <memory>
 #include <algorithm>
 
 #include <boost/uuid/uuid.hpp>
@@ -31,6 +32,7 @@ class Implant {
 	    std::unique_ptr<Api> api = nullptr;
         std::string id;
         bool is_running;
+        std::vector<std::unique_ptr<Task>> tasks;
 
         /**
          * @brief Utility to parse a std::string JSON response to a vector of Task
@@ -38,5 +40,9 @@ class Implant {
          * @param response 
          * @return std::vector<Task> 
          */
-        std::vector<Task> parse_tasks_response(const std::string &response);
+        void parse_tasks_response(const std::string &response);
+
+        void run_all();
+
+        void test_get_tasks();
 };

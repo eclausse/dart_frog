@@ -1,10 +1,24 @@
 #pragma once
 
+#include <iostream>
 #include <string>
+#include <memory>
 
-enum Task
+class Task
 {
-    INVALID, PING,
+public:
+    virtual ~Task() = default;
+    virtual void run() = 0;
+};
+
+class PingTask: public Task
+{
+private:
+public:
+    void run() {
+        std::cout << "ping" << std::endl;
+    }
+    ~PingTask() override {};
 };
 
 /**
@@ -13,4 +27,4 @@ enum Task
  * Exemple: "ping" => Task::PING
  * @return Task 
  */
-Task parse_task_from_string(std::string);
+std::unique_ptr<Task> parse_task_from_string(std::string);

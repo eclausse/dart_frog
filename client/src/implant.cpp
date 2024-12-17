@@ -37,20 +37,12 @@ void Implant::beacon() {
     //api->send_result(std::make_unique<Result>(id, "Pong", 1));
 
     //std::cout << api->assert_ping_pong() << std::endl;
-
+    test_get_tasks();
 }
 
-void Implant::set_running(bool isRunning)
+void Implant::parse_tasks_response(const std::string &response)
 {
-}
-
-void Implant::service_tasks()
-{
-}
-
-std::vector<Task> Implant::parse_tasks_response(const std::string &response)
-{
-    if(response.empty()) return std::vector<Task>();
+    if(response.empty()) return;
     // Local response variable
     std::stringstream ss{ response };
 
@@ -58,13 +50,20 @@ std::vector<Task> Implant::parse_tasks_response(const std::string &response)
     boost::property_tree::ptree root;
     boost::property_tree::read_json(ss, root);
 
-    std::vector<Task> tasks;
     for (auto &task : root)
         tasks.push_back(parse_task_from_string(task.second.get<std::string>("name")));
-    return tasks;
+}
+
+void Implant::run_all() {
+    for (auto& task: tasks) {
+        if (PingTask* ping_task = dynamic_cast<PingTask*>(task.get()))
+            ping_task->run();
+    }
 }
 
 
-void test_get_tasks() {
-    std::vector<Task> tasks_todo = parse_tasks_response("[{\"uid\":\"8db4dd5c-61ec-41e1-a5fc-9e78c8a1a90c\",\"name\":\"ping\"},{\"uid\":\"8db4dd5c-61ec-41e1-a5fc-9e78c8a1a90c\",\"name\":\"ping\"}]");
+void Implant::test_get_tasks() {
+    parse_tasks_response("[{\"uid\":\"8db4dd5c-61ec-41e1-a5fc-9e78c8a1a90c\",\"name\":\"ping\"},{\"uid\":\"8db4dd5c-61ec-41e1-a5fc-9e78c8a1a90c\",\"name\":\"ping\"}]");
+    
+    run_all();
 }
