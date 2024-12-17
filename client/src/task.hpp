@@ -25,6 +25,13 @@ public:
     ~PingTask() override {};
 };
 
+class InvalidTask: public Task
+{
+public:
+    void run() override;
+    ~InvalidTask() override {};
+};
+
 /**
  * @brief Parse a string to a task
  * If the string is not valid, return INVALID 

