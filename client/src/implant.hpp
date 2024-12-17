@@ -23,13 +23,12 @@
 
 class Implant {
     public:
-        Implant(std::string host, std::string port);
+        Implant();
 
         /* Implant entry point */
         void beacon();
 
     private:
-	    std::unique_ptr<Api> api = nullptr;
         std::string id;
         bool is_running;
         std::vector<std::unique_ptr<Task>> tasks;

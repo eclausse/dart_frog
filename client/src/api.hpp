@@ -19,7 +19,11 @@ using json = nlohmann::json;
 class Api
 {
     private:
-        const std::string host, port, uri;
+        Api() = default;
+
+        inline static std::string host_="", port_="", uri_="/api/";
+        inline static std::unique_ptr<Api> instance = nullptr;
+
         std::string send_http_post_request(std::string host,
                                         std::string port,
                                         std::string uri,
@@ -28,8 +32,10 @@ class Api
                                         std::string port,
                                         std::string uri);
     public:
-        Api(std::string host, std::string port);
-        ~Api();
+        ~Api() = default;
+
+        static Api &get_instance();
+        static void setup(std::string host, std::string port);
 
         /**
          * @brief Call /api/user/register to register the current device

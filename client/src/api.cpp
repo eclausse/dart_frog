@@ -1,18 +1,21 @@
 #include "api.hpp"
 
-
-Api::Api(std::string host, std::string port): host(host), port(port), uri("/api/")
-{
+Api &Api::get_instance() {
+    if (!instance) {
+        instance.reset(new Api());
+    }
+    return *instance;
 }
 
-Api::~Api()
-{
+void Api::setup(std::string host, std::string port) {
+    host_ = host;
+    port_ = port;
 }
 
 std::string Api::register_device(std::string uid, std::string name)
 {   
     /* API Path */
-    std::string api_uri_register = uri + "user/register";
+    std::string api_uri_register = uri_ + "user/register";
 
     /* Create payload as JSON */
     boost::property_tree::ptree resultsLocal;
@@ -22,7 +25,7 @@ std::string Api::register_device(std::string uid, std::string name)
     boost::property_tree::write_json(resultsStringStream, resultsLocal);
 
     /* Send API request */
-    return send_http_post_request(host, port, api_uri_register, resultsStringStream.str());
+    return send_http_post_request(host_, port_, api_uri_register, resultsStringStream.str());
 }
 
 bool Api::assert_ping_pong() {
@@ -30,14 +33,14 @@ bool Api::assert_ping_pong() {
     std::string api_uri_ping= "/ping";
 
     /* Send API request */
-    std::string response = send_http_get_request(host, port, api_uri_ping);
+    std::string response = send_http_get_request(host_, port_, api_uri_ping);
 
     return response == "PONG !";
 }
 
 std::string Api::get_tasks(std::string uid) {
     /* API Path */
-    std::string api_uri_result = uri + "task/anyforme";
+    std::string api_uri_result = uri_ + "task/anyforme";
 
     /* Create payload as JSON */
     boost::property_tree::ptree resultsLocal;
@@ -46,12 +49,12 @@ std::string Api::get_tasks(std::string uid) {
     boost::property_tree::write_json(resultsStringStream, resultsLocal);
 
     /* Send API request */
-    return send_http_post_request(host, port, api_uri_result, resultsStringStream.str());
+    return send_http_post_request(host_, port_, api_uri_result, resultsStringStream.str());
 }
 
 std::string Api::send_result(std::unique_ptr<Result> result) {
     /* API Path */
-    std::string api_uri_result = uri + "result/add";
+    std::string api_uri_result = uri_ + "result/add";
 
     /* Create payload as JSON */
     boost::property_tree::ptree resultsLocal;
@@ -62,7 +65,7 @@ std::string Api::send_result(std::unique_ptr<Result> result) {
     boost::property_tree::write_json(resultsStringStream, resultsLocal);
 
     /* Send API request */
-    return send_http_post_request(host, port, api_uri_result, resultsStringStream.str());
+    return send_http_post_request(host_, port_, api_uri_result, resultsStringStream.str());
 }
 
 std::string Api::send_http_post_request(std::string host,

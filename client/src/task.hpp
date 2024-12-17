@@ -1,5 +1,7 @@
 #pragma once
 
+#include "api.hpp"
+
 #include <iostream>
 #include <string>
 #include <memory>
@@ -8,16 +10,18 @@ class Task
 {
 public:
     virtual ~Task() = default;
+
+    /**
+     * @brief Run the derived task
+     * 
+     */
     virtual void run() = 0;
 };
 
 class PingTask: public Task
 {
-private:
 public:
-    void run() {
-        std::cout << "ping" << std::endl;
-    }
+    void run() override;
     ~PingTask() override {};
 };
 

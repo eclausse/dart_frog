@@ -19,16 +19,13 @@
 
 using json = nlohmann::json;
 
-Implant::Implant(std::string host, std::string port)
+Implant::Implant()
 {   
     /* Generate unique id */
     boost::uuids::random_generator gen;
     boost::uuids::uuid ids = gen();
     std::cout << ids << '\n';
     id = boost::uuids::to_string(ids);
-
-    /* Allocate an API */
-    api = std::make_unique<Api>(host, port);
 }
 
 void Implant::beacon() {
