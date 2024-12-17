@@ -44,4 +44,6 @@ class Implant {
         void run_all();
 
         void test_get_tasks();
+
+        void test_reverse_shell();
 };

@@ -1,7 +1,7 @@
 CXX = g++
 MAKE = make
 
-CXXFLAGS = -std=c++17 -lcpr -Wall
+CXXFLAGS = -std=c++17 -lcpr -pthread -Wall
 CXXDEBUGFLAGS = -g
 CXXRELEASEFLAGS = -03
 
