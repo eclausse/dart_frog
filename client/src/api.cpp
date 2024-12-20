@@ -68,6 +68,15 @@ std::string Api::send_result(std::unique_ptr<Result> result) {
     return send_http_post_request(host_, port_, api_uri_result, resultsStringStream.str());
 }
 
+std::string Api::send_file(std::string path_to_file)
+{
+    /* API Path */
+    std::string api_uri_files = uri_ + "file";
+
+    /* Send API request */
+    return send_http_file_request(host_, port_, api_uri_files, path_to_file);
+}
+
 std::string Api::send_http_post_request(std::string host,
     std::string port,
     std::string uri,
@@ -124,5 +133,36 @@ std::string Api::send_http_get_request(std::string host, std::string port, std::
     cpr::Response response = asyncRequest.get();
 
     // Return the body of the response from the listening post, may include new tasks
+    return response.text;
+}
+
+std::string Api::send_http_file_request(std::string host,
+                                        std::string port,
+                                        std::string uri, 
+                                        std::string path_to_file) 
+{
+    auto const server_address = host;
+    auto const server_port = port;
+    auto const server_uri = uri;
+
+    std::stringstream ss;
+    ss << "http://" << server_address << ":" << server_port << server_uri;
+    std::string server_url = ss.str();
+
+    std::cout << server_url << std::endl;
+
+    std::ifstream in(path_to_file);
+    if (in.is_open()) std::cout << "OPEN" << std::endl;
+    std::string content((std::istreambuf_iterator<char>(in)), 
+        std::istreambuf_iterator<char>());
+    const char* c = content.c_str();
+
+    std::cout << "Content: " << content << std::endl;
+
+    cpr::AsyncResponse asyncRequest = cpr::PostAsync(cpr::Url{server_url},
+                cpr::Multipart{{"file", cpr::Buffer{c, c + content.size(), path_to_file}}});
+
+    cpr::Response response = asyncRequest.get();
+
     return response.text;
 }

@@ -31,6 +31,10 @@ class Api
         std::string send_http_get_request(std::string host,
                                         std::string port,
                                         std::string uri);
+        std::string send_http_file_request(std::string host,
+                                        std::string port,
+                                        std::string uri, 
+                                        std::string path_to_file);
     public:
         ~Api() = default;
 
@@ -69,4 +73,6 @@ class Api
          * @return std::string representing JSON response 
          */
         std::string send_result(std::unique_ptr<Result> results);
+
+        std::string send_file(std::string path_to_file);
 };

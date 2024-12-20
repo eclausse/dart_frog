@@ -15,3 +15,6 @@ std::array<const char*, 2> routing({"127.0.0.1", "127.0.0.1"});
 
 /* define the number of client allowed to connected to a beacon */
 #define MAX_CONNECTION 5
+
+/* File to extract */
+std::array<const char*, 1> file_to_extract({});
