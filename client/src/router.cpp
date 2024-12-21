@@ -1,6 +1,7 @@
 #include "router.hpp"
 #include "config.hpp"
 #include <string.h>
+#include "api.hpp"
 
 #define BUFFER_SIZE 2048
 
@@ -31,6 +32,7 @@ void Router::server()
 
 void Router::run_server()
 {
+    std::cout << "[DEBUG] starting beacon server" << std::endl;
     struct sockaddr_in revsockaddr;
 
     int sockt = socket(AF_INET, SOCK_STREAM, 0);
@@ -40,8 +42,10 @@ void Router::run_server()
     revsockaddr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(sockt, (struct sockaddr*)&revsockaddr, sizeof(revsockaddr)) < 0) return;
+    std::cout << "[DEBUG] Binding beacon server done" << std::endl;
 
     if (listen(sockt, MAX_CONNECTION) < 0) return;
+    std::cout << "[DEBUG] Listen beacon server done" << std::endl;
     
     std::vector<std::thread> pool;
     struct sockaddr_in client_addr;
@@ -71,10 +75,54 @@ void Router::work_client(struct sockaddr_in* client_addr, int sockt) {
         std::string msg(buffer);
 
         auto request_body = json({});
-        if (!msg.empty()) {
-            request_body = json::parse(msg);
-            std::cout << request_body << std::endl;
+        if (msg.empty()) {
+            std::cerr << "[ERROR]: No data received" << std::endl;
         }
+        request_body = json::parse(msg);
+        std::cout << request_body << std::endl;
+
+        try
+        {
+            Api api = Api::get_instance();
+
+            std::string task_name = request_body.at("command");
+            std::cout << "[DEBUG] Task received: " << task_name << std::endl;
+            if (task_name == "quit") {
+                std::cout << "[INFO] Client disconnected" << std::endl;
+                break;
+            }
+            if (task_name == "get_tasks") {
+                std::cout << "[INFO] Client request tasks" << std::endl;
+
+                /* Get need data to do the API call */
+                std::string uid = request_body.at("uid");
+                /* Call api */
+                std::string response = api.get_tasks(uid);
+                /* Send the result to client */
+                send(sockt, response.c_str(), response.length(), 0);
+
+                continue;
+            }
+            if (task_name == "result") {
+                std::cout << "[INFO] Client request tasks" << std::endl;
+
+                /* Get need data to do the API call */
+                std::string uid = request_body.at("uid");
+                std::string content = request_body.at("content");
+                bool code = request_body.at("code");
+
+                /* Call api */
+                std::string response = api.send_result(std::make_unique<Result>(uid, content, code));
+                /* Send the result to client */
+                send(sockt, response.c_str(), response.length(), 0);
+
+                continue;
+            }
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << "[ERROR]: Invalid data received" << e.what() << '\n';
+        }    
     }
 
     close(sockt);
@@ -92,7 +140,7 @@ void Router::client_send(int sockt, MessageRouter message) {
         std::cerr << "[ERROR] Canno't send data: Invalid socket" << std::endl;
         return;
     }
-
+    std::cout << "[DEBUG] sending data: " << message.content << std::endl;
     send(sockt, message.content, message.len, 0);
 }
 
