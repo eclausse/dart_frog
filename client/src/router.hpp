@@ -30,8 +30,9 @@ class MessageFactory
 private:
     MessageFactory() = default;
 public:
+    static MessageRouter create_register_device(std::string& uid, std::string& name);
     static MessageRouter create_get_tasks(std::string& uid);
-    static MessageRouter create_result(std::unique_ptr<Result> results);
+    static MessageRouter create_result(std::unique_ptr<Result>& results);
 };
 
 
@@ -40,6 +41,7 @@ class Router
 {
 private:
     int socket_;
+    inline static bool is_running = false;
 
     /**
      * @brief Routing service
@@ -78,5 +80,7 @@ public:
      * 
      * @param message 
      */
-    void client_send(int sockt, MessageRouter message);
+    std::string client_send(int sockt, MessageRouter message);
+
+    bool is_server_running();
 };

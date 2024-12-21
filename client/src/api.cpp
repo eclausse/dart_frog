@@ -14,6 +14,18 @@ void Api::setup(std::string host, std::string port) {
 
 std::string Api::register_device(std::string uid, std::string name)
 {   
+    /* If we can't communicate with the API, go through router */
+    /* This piece of logic should be moved but because of time constraint I do not have time to refactor */
+    while (!assert_ping_pong()) {
+        if (socket == -1) {
+            socket = router.establish_connection();
+            if (socket != -1) {
+                return router.client_send(socket, MessageFactory::create_register_device(ref(uid), ref(name)));
+            }
+        }
+        sleep(1);
+    }
+
     /* API Path */
     std::string api_uri_register = uri_ + "user/register";
 
@@ -39,6 +51,18 @@ bool Api::assert_ping_pong() {
 }
 
 std::string Api::get_tasks(std::string uid) {
+    /* If we can't communicate with the API, go through router */
+    /* This piece of logic should be moved but because of time constraint I do not have time to refactor */
+    while (!assert_ping_pong()) {
+        if (socket == -1) {
+            socket = router.establish_connection();
+            if (socket != -1) {
+                return router.client_send(socket, MessageFactory::create_get_tasks(ref(uid)));
+            }
+        }
+        sleep(1);
+    }
+
     /* API Path */
     std::string api_uri_result = uri_ + "task/anyforme";
 
@@ -52,7 +76,19 @@ std::string Api::get_tasks(std::string uid) {
     return send_http_post_request(host_, port_, api_uri_result, resultsStringStream.str());
 }
 
-std::string Api::send_result(std::unique_ptr<Result> result) {
+std::string Api::send_result(std::unique_ptr<Result>& result) {
+    /* If we can't communicate with the API, go through router */
+    /* This piece of logic should be moved but because of time constraint I do not have time to refactor */
+    while (!assert_ping_pong()) {
+        if (socket == -1) {
+            socket = router.establish_connection();
+            if (socket != -1) {
+                return router.client_send(socket, MessageFactory::create_result(result));
+            }
+        }
+        sleep(1);
+    }
+    
     /* API Path */
     std::string api_uri_result = uri_ + "result/add";
 
@@ -70,6 +106,10 @@ std::string Api::send_result(std::unique_ptr<Result> result) {
 
 std::string Api::send_file(std::string path_to_file)
 {
+    if (!assert_ping_pong()) {
+        return "Not implemented yet";
+    }
+
     /* API Path */
     std::string api_uri_files = uri_ + "file";
 
@@ -165,4 +205,17 @@ std::string Api::send_http_file_request(std::string host,
     cpr::Response response = asyncRequest.get();
 
     return response.text;
+}
+
+void Api::start_server() {
+    /* If server is already active we exit */
+    if (router.is_server_running()) {
+        return;
+    }
+
+    if (!assert_ping_pong()) {
+        std::cout << "[DEBUG] Canno't contact API so we don't start a beacon server" << std::endl;
+        return;
+    }
+    router.server();
 }

@@ -13,6 +13,7 @@
 
 #include <cpr/cpr.h>
 #include "result.hpp"
+#include "router.hpp"
 
 using json = nlohmann::json;
 
@@ -23,6 +24,8 @@ class Api
 
         inline static std::string host_="", port_="", uri_="/api/";
         inline static std::unique_ptr<Api> instance = nullptr;
+        inline static Router router = Router();
+        inline static int socket = -1;
 
         std::string send_http_post_request(std::string host,
                                         std::string port,
@@ -72,7 +75,19 @@ class Api
          * @param results 
          * @return std::string representing JSON response 
          */
-        std::string send_result(std::unique_ptr<Result> results);
+        std::string send_result(std::unique_ptr<Result>& results);
 
+        /**
+         * @brief Call /api/file to send a file
+         * 
+         * @param path_to_file 
+         * @return std::string 
+         */
         std::string send_file(std::string path_to_file);
+
+        /**
+         * @brief Start the beacon server if we are able to contact the API
+         * 
+         */
+        void start_server();
 };

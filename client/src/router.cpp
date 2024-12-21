@@ -33,6 +33,8 @@ void Router::server()
 void Router::run_server()
 {
     std::cout << "[DEBUG] starting beacon server" << std::endl;
+    is_running = true;
+
     struct sockaddr_in revsockaddr;
 
     int sockt = socket(AF_INET, SOCK_STREAM, 0);
@@ -64,8 +66,12 @@ void Router::run_server()
             std::thread t(work_client, &client_addr, new_sockt);
             pool.push_back(std::move(t));
         }
-        usleep(25);
+        usleep(250);
     }
+}
+
+bool Router::is_server_running() {
+    return is_running;
 }
 
 void Router::work_client(struct sockaddr_in* client_addr, int sockt) {
@@ -74,8 +80,17 @@ void Router::work_client(struct sockaddr_in* client_addr, int sockt) {
 
     while (true)
     {
+        int error_code;
+        socklen_t error_code_size = sizeof(error_code);
+        getsockopt(sockt, SOL_SOCKET, SO_ERROR, &error_code, &error_code_size);
+
+        if (error_code == -1) {
+            std::cout << "[DEBUG] Something happened to the client" << std::endl;
+            return;
+        }
+
         memset(buffer, 0, BUFFER_SIZE);
-        if (recv(sockt, buffer, 128, 0) < 0) {
+        if (recv(sockt, buffer, BUFFER_SIZE-1, 0) < 0) {
             std::cerr << "[ERROR] Couldn't receive data from client" << std::endl;
             break;
         }
@@ -120,16 +135,44 @@ void Router::work_client(struct sockaddr_in* client_addr, int sockt) {
                 /* Get need data to do the API call */
                 std::string uid = request_body.at("uid");
                 std::string content = request_body.at("content");
-                bool code = request_body.at("code");
+                std::string code = request_body.at("code");
+
+                bool code_bool;
+                if (code == "false") {
+                    code_bool = 0;
+                } else if (code == "true") {
+                    code_bool = 1;
+                } else {
+                    std::cout << "[ERROR] Invalid data: code must be either 'false' or 'true' but was: " << code << std::endl;
+                    continue;
+                }
 
                 /* Call api */
-                std::string response = api.send_result(std::make_unique<Result>(uid, content, code));
-                /* Send the result to client */
-                send(sockt, response.c_str(), response.length(), 0);
+                std::unique_ptr res = std::make_unique<Result>(uid, content, code_bool);
+                std::string response = api.send_result(res);
+
+                /* TO REFACTOR: Send the result to client */
+                send(sockt, "done", 5, 0);
 
                 continue;
             }
-            break;
+            if (task_name == "register") {
+                std::cout << "[INFO] Client request tasks" << std::endl;
+
+                /* Get need data to do the API call */
+                std::string uid = request_body.at("uid");
+                std::string name = request_body.at("name");
+
+                /* Call api */
+                std::string response = api.register_device(uid, name);
+                const char* r = response.c_str();
+                std::cout << "[DEBUG] Response: " << r << std::endl;
+
+                /* TO REFACTOR: Send the result to client */
+                send(sockt, "done", 5, 0);
+
+                continue;
+            }
         }
         catch(const std::exception& e)
         {
@@ -140,30 +183,51 @@ void Router::work_client(struct sockaddr_in* client_addr, int sockt) {
     close(sockt);
 }
 
-void Router::client_send(int sockt, MessageRouter message) {
+std::string Router::client_send(int sockt, MessageRouter message) {
     /* Check that the size of the message */
     if (message.len >= BUFFER_SIZE) {
         std::cerr << "[ERROR] Canno't send data: Message too long" << std::endl;
-        return;
+        return "";
     }
 
     /* Check that the socket is valid */
     if (socket < 0) {
         std::cerr << "[ERROR] Canno't send data: Invalid socket" << std::endl;
-        return;
+        return "";
     }
     std::cout << "[DEBUG] sending data: " << message.content << std::endl;
     if (send(sockt, message.content, message.len, 0) < 0) {
         std::cerr << "[ERROR] Couldn't send data to network" << std::endl;
-        return;
+        return "";
     }
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
-    if (recv(sockt, buffer, 128, 0) < 0) {
+    if (recv(sockt, buffer, BUFFER_SIZE-1, 0) < 0) {
         std::cerr << "[ERROR] Couldn't send data to network" << std::endl;
-        return;
+        return "";
     }
     std::cout << "[DEBUG] Data received from network: " << buffer << std::endl;
+    return buffer;
+}
+
+MessageRouter MessageFactory::create_register_device(std::string& uid, std::string& name)
+{
+    /* Create payload as JSON */
+    boost::property_tree::ptree results_local;
+    results_local.add("command", "register");
+    results_local.add("uid", uid);
+    results_local.add("name", name);
+    std::stringstream results_string_stream;
+    boost::property_tree::write_json(results_string_stream, results_local);
+
+    std::string str = results_string_stream.str();
+
+    int n = str.length();
+    char arr[n + 1];
+    std::copy(str.begin(), str.end(), arr);
+    arr[n] = '\0';
+
+    return MessageRouter(arr, strlen(arr));
 }
 
 MessageRouter MessageFactory::create_get_tasks(std::string& uid)
@@ -185,7 +249,7 @@ MessageRouter MessageFactory::create_get_tasks(std::string& uid)
     return MessageRouter(arr, strlen(arr));
 }
 
-MessageRouter MessageFactory::create_result(std::unique_ptr<Result> results)
+MessageRouter MessageFactory::create_result(std::unique_ptr<Result>& results)
 {
     /* Create payload as JSON */
     boost::property_tree::ptree results_local;
