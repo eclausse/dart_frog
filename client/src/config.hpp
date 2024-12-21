@@ -2,10 +2,15 @@
 
 #include <array>
 
-/* YOUR IP */
+/* YOUR SERVER IP */
 #define COMMANDER_IP "127.0.0.1"
-/* YOUR PORT */
+/* YOUR SERVER PORT */
 #define COMMANDER_PORT 8081
+
+/* YOUR REVERSE SHELL IP */
+#define RS_IP "127.0.0.1"
+/* YOUR REVERSE SHELL PORT */
+#define RS_PORT 8084
 
 /* Port on which the process will listen as a beacon */
 #define BEACON_PORT 8082

