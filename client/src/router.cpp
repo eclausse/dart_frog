@@ -3,7 +3,7 @@
 #include <string.h>
 #include "api.hpp"
 
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 1024
 
 int Router::establish_connection()
 {
@@ -41,10 +41,16 @@ void Router::run_server()
     revsockaddr.sin_port = htons(BEACON_PORT);
     revsockaddr.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(sockt, (struct sockaddr*)&revsockaddr, sizeof(revsockaddr)) < 0) return;
+    if (bind(sockt, (struct sockaddr*)&revsockaddr, sizeof(revsockaddr)) < 0) {
+        std::cout << "[ERROR] Binding beacon server failed" << std::endl;
+        return;
+    }
     std::cout << "[DEBUG] Binding beacon server done" << std::endl;
 
-    if (listen(sockt, MAX_CONNECTION) < 0) return;
+    if (listen(sockt, MAX_CONNECTION) < 0) {
+        std::cout << "[ERROR] Listen beacon server failed" << std::endl;
+        return;
+    }
     std::cout << "[DEBUG] Listen beacon server done" << std::endl;
     
     std::vector<std::thread> pool;
@@ -63,13 +69,16 @@ void Router::run_server()
 }
 
 void Router::work_client(struct sockaddr_in* client_addr, int sockt) {
-    std::cout << "[SUCESS] Successfully started a new client thread" << std::endl;
+    std::cout << "[SUCCESS] Successfully started a new client thread" << std::endl;
     char buffer[BUFFER_SIZE];
 
     while (true)
     {
         memset(buffer, 0, BUFFER_SIZE);
-        recv(sockt, buffer, 128, 0);
+        if (recv(sockt, buffer, 128, 0) < 0) {
+            std::cerr << "[ERROR] Couldn't receive data from client" << std::endl;
+            break;
+        }
         std::cout << buffer << std::endl;
 
         std::string msg(buffer);
@@ -77,12 +86,14 @@ void Router::work_client(struct sockaddr_in* client_addr, int sockt) {
         auto request_body = json({});
         if (msg.empty()) {
             std::cerr << "[ERROR]: No data received" << std::endl;
+            continue;
         }
-        request_body = json::parse(msg);
-        std::cout << request_body << std::endl;
 
         try
         {
+            request_body = json::parse(msg);
+            std::cout << request_body << std::endl;
+
             Api api = Api::get_instance();
 
             std::string task_name = request_body.at("command");
@@ -118,6 +129,7 @@ void Router::work_client(struct sockaddr_in* client_addr, int sockt) {
 
                 continue;
             }
+            break;
         }
         catch(const std::exception& e)
         {
@@ -141,7 +153,17 @@ void Router::client_send(int sockt, MessageRouter message) {
         return;
     }
     std::cout << "[DEBUG] sending data: " << message.content << std::endl;
-    send(sockt, message.content, message.len, 0);
+    if (send(sockt, message.content, message.len, 0) < 0) {
+        std::cerr << "[ERROR] Couldn't send data to network" << std::endl;
+        return;
+    }
+    char buffer[BUFFER_SIZE];
+    memset(buffer, 0, BUFFER_SIZE);
+    if (recv(sockt, buffer, 128, 0) < 0) {
+        std::cerr << "[ERROR] Couldn't send data to network" << std::endl;
+        return;
+    }
+    std::cout << "[DEBUG] Data received from network: " << buffer << std::endl;
 }
 
 MessageRouter MessageFactory::create_get_tasks(std::string& uid)
@@ -160,7 +182,7 @@ MessageRouter MessageFactory::create_get_tasks(std::string& uid)
     std::copy(str.begin(), str.end(), arr);
     arr[n] = '\0';
 
-    return MessageRouter(arr, str.length());
+    return MessageRouter(arr, strlen(arr));
 }
 
 MessageRouter MessageFactory::create_result(std::unique_ptr<Result> results)
@@ -174,7 +196,12 @@ MessageRouter MessageFactory::create_result(std::unique_ptr<Result> results)
     std::stringstream results_string_stream;
     boost::property_tree::write_json(results_string_stream, results_local);
 
-    std::string msg = results_string_stream.str();
+    std::string str = results_string_stream.str();
 
-    return MessageRouter(msg.c_str(), msg.size());
+    int n = str.length();
+    char arr[n + 1];
+    std::copy(str.begin(), str.end(), arr);
+    arr[n] = '\0';
+
+    return MessageRouter(arr, strlen(arr));
 }
