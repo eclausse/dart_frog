@@ -38,6 +38,10 @@ class Api
                                         std::string port,
                                         std::string uri, 
                                         std::string path_to_file);
+        std::string send_http_delete_request(std::string host,
+                                        std::string port,
+                                        std::string uri,
+                                        std::string payload);
     public:
         ~Api() = default;
 

@@ -3,6 +3,5 @@ client/bin/
 api/dist
 api/node_modules
 api/frogy.db
-api/files
 
 .vscode

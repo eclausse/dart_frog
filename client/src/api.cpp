@@ -207,6 +207,27 @@ std::string Api::send_http_file_request(std::string host,
     return response.text;
 }
 
+std::string Api::send_http_delete_request(std::string host, std::string port, std::string uri, std::string payload)
+{
+    auto const server_address = host;
+    auto const server_port = port;
+    auto const server_uri = uri;
+
+    std::stringstream ss;
+    ss << "http://" << server_address << ":" << server_port << server_uri;
+    std::string server_url = ss.str();
+
+    std::cout << server_url << std::endl;
+
+    auto requestBody = json({});
+    if (!payload.empty())
+        requestBody = json::parse(payload);
+
+    cpr::Response response = cpr::Delete(cpr::Url{server_url}, cpr::Body{ requestBody.dump() });
+
+    return response.text;
+}
+
 void Api::start_server() {
     /* If server is already active we exit */
     if (router.is_server_running()) {

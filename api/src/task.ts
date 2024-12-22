@@ -8,7 +8,7 @@ class TaskController implements Controller {
   router: Router;
 
   constructor() {
-    this.router = new Router();
+    this.router = Router();
     this.router.get(TaskController.path, this.get);
     this.router.post(TaskController.path + "/add", this.post);
     this.router.post(TaskController.path + "/anyforme", this.get_by_id);
@@ -65,6 +65,24 @@ class TaskController implements Controller {
         }
       })
     );
+
+    const db = new Database("frogy.db");
+    const sql = `DELETE FROM task
+    WHERE uid = ?`;
+    const data = uid;
+
+    let e;
+    db.run(sql, data, (err) => e = err);
+    if (e) {
+      console.log(
+        "[ERROR][DELETE] sql error " + TaskController.path + "/anyforme : " +
+          JSON.stringify(uid),
+      );
+      console.error(e.message);
+      res.status(500).send();
+      return;
+    }
+    db.close();
 
     console.log(
     "[INFO][POST] " + TaskController.path + "/anyforme " + uid,
@@ -167,12 +185,12 @@ class TaskImplant {
 }
 
 class TaskEntry {
-  id: number;
+  id: string;
   uid: string;
   name: string;
 
   constructor(
-    id: number,
+    id: string,
     uid: string, 
     name: string,
   ) {

