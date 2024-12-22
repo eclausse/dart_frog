@@ -81,14 +81,6 @@ Go to client/src/config.hpp: Add to the variable *routing* all the IPs
 19: static const std::array<const char*, NUMBER_OF_IPs> routing({"127.0.0.1"});
 ```
 
-# Defence Evasion technics
-
-- Masquerading 
-
-## If executed as root 
-
-- Disable firewall and defences
-- Remove logs
 
 # Author
 Evan Clausse
