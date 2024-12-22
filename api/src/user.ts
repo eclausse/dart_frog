@@ -29,11 +29,11 @@ class UserController implements Controller {
 
 
   async get(_req: Request, res: Response) {
-    let users: String[] = [];
+    let users: String[][] = [];
 
     await UserController.get_values().then((rows: any) =>
-      rows.forEach((row) => {
-        users.push(row.name);
+      rows.forEach((row: any) => {
+        users.push([row.uid, row.name]);
       })
     );
 
